@@ -4,11 +4,6 @@ import numpy as np
 import joblib
 import streamlit as st
 
-# =========================
-# Load Model from Base64
-# =========================
-def load_model(pkl_string):
-    return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
 
 # =========================
 # 🔴 PASTE YOUR FULL STRINGS BELOW
