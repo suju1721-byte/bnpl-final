@@ -10,15 +10,6 @@ import streamlit as st
 def load_model(pkl_string):
     return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
 
-# =========================
-# 🔴 PASTE YOUR MODEL STRINGS HERE
-# =========================
-_PKL_LR = "PASTE_YOUR_REAL_LR_STRING"
-_PKL_RF = "PASTE_YOUR_REAL_RF_STRING"
-
-# Load models
-model_lr = load_model(_PKL_LR)
-model_rf = load_model(_PKL_RF)
 
 # =========================
 # UI
