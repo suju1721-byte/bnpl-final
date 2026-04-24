@@ -3,14 +3,14 @@ import streamlit as st
 from sklearn.linear_model import LogisticRegression
 
 # =========================
-# CREATE DUMMY MODEL (TEMP FIX)
+# TEMP MODEL (WORKING)
 # =========================
 @st.cache_resource
 def load_model():
     model = LogisticRegression()
 
-    # Dummy training data (so app doesn't crash)
-    X = np.random.rand(100, 16)
+    # dummy training (so app runs)
+    X = np.random.rand(100, 4)
     y = np.random.randint(0, 2, 100)
 
     model.fit(X, y)
@@ -21,56 +21,47 @@ model = load_model()
 # =========================
 # UI
 # =========================
-st.set_page_config(page_title="BNPL Prediction")
+st.set_page_config(page_title="BNPL Risk Checker", layout="centered")
 
-st.title("💳 BNPL Loan Default Prediction")
-st.markdown("### Quick Demo Version (Working)")
+st.title("💳 BNPL Risk Prediction")
+st.markdown("### Enter Financial Details")
 
-# Inputs
-col1, col2 = st.columns(2)
+# Inputs (only what you asked)
+credit_score = st.slider("Credit Score", 300, 900, 650)
+income = st.number_input("Income", min_value=0.0)
+interest_rate = st.slider("Interest Rate (%)", 0.0, 30.0)
+dti_ratio = st.slider("DTI Ratio", 0.0, 1.0)
 
-with col1:
-    Age = st.number_input("Age", 18, 100)
-    Income = st.number_input("Income")
-    LoanAmount = st.number_input("Loan Amount")
-    CreditScore = st.number_input("Credit Score")
-
-with col2:
-    MonthsEmployed = st.number_input("Months Employed")
-    NumCreditLines = st.number_input("Credit Lines")
-    InterestRate = st.slider("Interest Rate", 0.0, 30.0)
-    LoanTerm = st.slider("Loan Term", 1, 60)
-
-DTIRatio = st.slider("DTI Ratio", 0.0, 1.0)
-
-Education = st.selectbox("Education", [0,1,2])
-EmploymentType = st.selectbox("Employment Type", [0,1,2])
-MaritalStatus = st.selectbox("Marital Status", [0,1,2])
-HasMortgage = st.selectbox("Has Mortgage", [0,1])
-HasDependents = st.selectbox("Has Dependents", [0,1])
-LoanPurpose = st.selectbox("Loan Purpose", [0,1,2,3])
-HasCoSigner = st.selectbox("Has Co-Signer", [0,1])
+cutoff = st.slider("Risk Cutoff (%)", 0, 100, 50)
 
 # =========================
 # Prediction
 # =========================
-if st.button("🔍 Predict"):
-    features = np.array([[Age, Income, LoanAmount, CreditScore,
-                          MonthsEmployed, NumCreditLines, InterestRate,
-                          LoanTerm, DTIRatio, Education,
-                          EmploymentType, MaritalStatus,
-                          HasMortgage, HasDependents,
-                          LoanPurpose, HasCoSigner]])
+if st.button("🔍 Check Risk"):
 
-    pred = model.predict(features)
-    prob = model.predict_proba(features)[0][1]
+    # Prepare input
+    features = np.array([[credit_score, income, interest_rate, dti_ratio]])
 
-    st.subheader("Result")
+    # Predict probability
+    prob = model.predict_proba(features)[0][1] * 100  # convert to %
 
-    if pred[0] == 1:
+    st.subheader("📊 Risk Analysis")
+
+    # Show probability
+    st.progress(prob / 100)
+    st.write(f"Default Probability: **{prob:.2f}%**")
+
+    # Apply cutoff logic
+    if prob >= cutoff:
         st.error("⚠️ High Risk of Default")
     else:
         st.success("✅ Low Risk (Safe)")
 
-    st.progress(float(prob))
-    st.write(f"📊 Default Probability: {prob:.2f}")
+    # Simple insights
+    st.markdown("### 💡 Insights")
+    if credit_score < 600:
+        st.warning("Low credit score increases risk")
+    if dti_ratio > 0.4:
+        st.warning("High DTI ratio increases risk")
+    if interest_rate > 15:
+        st.warning("High interest rate may indicate risky profile")
