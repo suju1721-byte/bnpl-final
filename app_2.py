@@ -3,17 +3,34 @@ import streamlit as st
 from sklearn.linear_model import LogisticRegression
 
 # =========================
-# TEMP MODEL (WORKING)
+# Improved Demo Model
 # =========================
 @st.cache_resource
 def load_model():
     model = LogisticRegression()
 
-    # dummy training (so app runs)
-    X = np.random.rand(100, 4)
-    y = np.random.randint(0, 2, 100)
+    X = []
+    y = []
 
-    model.fit(X, y)
+    # Generate smarter synthetic data
+    for _ in range(300):
+        credit = np.random.randint(300, 900)
+        income = np.random.randint(10000, 100000)
+        interest = np.random.uniform(1, 25)
+        dti = np.random.uniform(0, 1)
+
+        risk = 0
+        if credit < 600: risk += 1
+        if income < 40000: risk += 1
+        if interest > 15: risk += 1
+        if dti > 0.4: risk += 1
+
+        label = 1 if risk >= 2 else 0
+
+        X.append([credit, income, interest, dti])
+        y.append(label)
+
+    model.fit(np.array(X), np.array(y))
     return model
 
 model = load_model()
@@ -26,12 +43,11 @@ st.set_page_config(page_title="BNPL Risk Checker", layout="centered")
 st.title("💳 BNPL Risk Prediction")
 st.markdown("### Enter Financial Details")
 
-# Inputs (only what you asked)
+# Inputs
 credit_score = st.slider("Credit Score", 300, 900, 650)
-income = st.number_input("Income", min_value=0.0)
-interest_rate = st.slider("Interest Rate (%)", 0.0, 30.0)
-dti_ratio = st.slider("DTI Ratio", 0.0, 1.0)
-
+income = st.number_input("Income", min_value=0.0, value=50000.0)
+interest_rate = st.slider("Interest Rate (%)", 0.0, 30.0, 10.0)
+dti_ratio = st.slider("DTI Ratio", 0.0, 1.0, 0.3)
 cutoff = st.slider("Risk Cutoff (%)", 0, 100, 50)
 
 # =========================
@@ -39,29 +55,40 @@ cutoff = st.slider("Risk Cutoff (%)", 0, 100, 50)
 # =========================
 if st.button("🔍 Check Risk"):
 
-    # Prepare input
     features = np.array([[credit_score, income, interest_rate, dti_ratio]])
 
-    # Predict probability
-    prob = model.predict_proba(features)[0][1] * 100  # convert to %
+    prob = float(model.predict_proba(features)[0][1] * 100)
+    prob = min(max(prob, 0), 100)  # safety clamp
 
     st.subheader("📊 Risk Analysis")
 
-    # Show probability
+    # Progress bar
     st.progress(prob / 100)
+
+    # Show probability
     st.write(f"Default Probability: **{prob:.2f}%**")
 
-    # Apply cutoff logic
+    # Risk decision
     if prob >= cutoff:
-        st.error("⚠️ High Risk of Default")
+        st.error(f"⚠️ High Risk ({prob:.1f}%)")
+    elif prob >= cutoff - 20:
+        st.warning(f"⚠️ Medium Risk ({prob:.1f}%)")
     else:
-        st.success("✅ Low Risk (Safe)")
+        st.success(f"✅ Low Risk ({prob:.1f}%)")
 
-    # Simple insights
+    # =========================
+    # Insights
+    # =========================
     st.markdown("### 💡 Insights")
+
     if credit_score < 600:
         st.warning("Low credit score increases risk")
+
+    if income < 40000:
+        st.warning("Low income increases risk")
+
     if dti_ratio > 0.4:
         st.warning("High DTI ratio increases risk")
+
     if interest_rate > 15:
-        st.warning("High interest rate may indicate risky profile")
+        st.warning("High interest rate indicates riskier profile")
