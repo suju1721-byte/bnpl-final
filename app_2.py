@@ -1,5 +1,63 @@
 """
-BNPL Loan Default Prediction - Flask App
+BNPL Loan Default Prediction -
+import base64, io
+import numpy as np
+import joblib
+import streamlit as st
+
+# === Load Embedded Models ===
+
+def load_model(pkl_string):
+return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
+
+# === Paste your existing PKL strings here (UNCHANGED) ===
+
+_PKL_LR = """PASTE_YOUR_LR_STRING_HERE"""
+_PKL_RF = """PASTE_YOUR_RF_STRING_HERE"""
+
+# Load models
+
+model_lr = load_model(_PKL_LR)
+model_rf = load_model(_PKL_RF)
+
+# === Streamlit UI ===
+
+st.set_page_config(page_title="BNPL Prediction", layout="centered")
+
+st.title("💳 BNPL Loan Default Prediction")
+
+st.write("Enter customer details below:")
+
+# Example inputs (adjust based on your model features)
+
+age = st.number_input("Age", min_value=18, max_value=100)
+income = st.number_input("Income")
+loan_amount = st.number_input("Loan Amount")
+credit_score = st.number_input("Credit Score")
+
+model_choice = st.selectbox("Choose Model", ["Logistic Regression", "Random Forest"])
+
+# Prediction
+
+if st.button("Predict"):
+try:
+features = np.array([[age, income, loan_amount, credit_score]])
+
+```
+    if model_choice == "Logistic Regression":
+        prediction = model_lr.predict(features)
+    else:
+        prediction = model_rf.predict(features)
+
+    result = "Default Risk ❌" if prediction[0] == 1 else "Safe ✅"
+
+    st.subheader("Result:")
+    st.success(result)
+
+except Exception as e:
+    st.error(f"Error: {e}")
+```
+
 All models embedded as base64 PKL data (no external pkl files needed)
 """
 import base64, io, json
