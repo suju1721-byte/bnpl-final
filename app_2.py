@@ -79,8 +79,7 @@ if st.button("Predict"):
         EmploymentType, MaritalStatus,
         HasMortgage, HasDependents,
         LoanPurpose, HasCoSigner]])
-
-```
+        
     if model_choice == "Logistic Regression":
         pred = model_lr.predict(features)
     else:
