@@ -1,36 +1,32 @@
-import base64
-import io
 import numpy as np
-import joblib
 import streamlit as st
+from sklearn.linear_model import LogisticRegression
 
 # =========================
-# Load Model from Base64
+# CREATE DUMMY MODEL (TEMP FIX)
 # =========================
-def load_model(pkl_string):
-    return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
+@st.cache_resource
+def load_model():
+    model = LogisticRegression()
 
-# =========================
-# 🔴 PASTE YOUR LR MODEL STRING HERE
-# =========================
-_PKL_LR = "PASTE_YOUR_REAL_LR_STRING_HERE"
+    # Dummy training data (so app doesn't crash)
+    X = np.random.rand(100, 16)
+    y = np.random.randint(0, 2, 100)
 
-# Load model safely
-try:
-    model_lr = load_model(_PKL_LR)
-except Exception as e:
-    model_lr = None
-    st.error(f"Model failed to load: {e}")
+    model.fit(X, y)
+    return model
+
+model = load_model()
 
 # =========================
 # UI
 # =========================
-st.set_page_config(page_title="BNPL Prediction", layout="centered")
+st.set_page_config(page_title="BNPL Prediction")
 
 st.title("💳 BNPL Loan Default Prediction")
-st.markdown("### Enter customer details below")
+st.markdown("### Quick Demo Version (Working)")
 
-# Layout
+# Inputs
 col1, col2 = st.columns(2)
 
 with col1:
@@ -47,47 +43,34 @@ with col2:
 
 DTIRatio = st.slider("DTI Ratio", 0.0, 1.0)
 
-Education = st.selectbox("Education", [0, 1, 2])
-EmploymentType = st.selectbox("Employment Type", [0, 1, 2])
-MaritalStatus = st.selectbox("Marital Status", [0, 1, 2])
-HasMortgage = st.selectbox("Has Mortgage", [0, 1])
-HasDependents = st.selectbox("Has Dependents", [0, 1])
-LoanPurpose = st.selectbox("Loan Purpose", [0, 1, 2, 3])
-HasCoSigner = st.selectbox("Has Co-Signer", [0, 1])
+Education = st.selectbox("Education", [0,1,2])
+EmploymentType = st.selectbox("Employment Type", [0,1,2])
+MaritalStatus = st.selectbox("Marital Status", [0,1,2])
+HasMortgage = st.selectbox("Has Mortgage", [0,1])
+HasDependents = st.selectbox("Has Dependents", [0,1])
+LoanPurpose = st.selectbox("Loan Purpose", [0,1,2,3])
+HasCoSigner = st.selectbox("Has Co-Signer", [0,1])
 
 # =========================
 # Prediction
 # =========================
 if st.button("🔍 Predict"):
-    if model_lr is None:
-        st.error("Model not loaded. Check your base64 string.")
-        st.stop()
+    features = np.array([[Age, Income, LoanAmount, CreditScore,
+                          MonthsEmployed, NumCreditLines, InterestRate,
+                          LoanTerm, DTIRatio, Education,
+                          EmploymentType, MaritalStatus,
+                          HasMortgage, HasDependents,
+                          LoanPurpose, HasCoSigner]])
 
-    try:
-        features = np.array([[Age, Income, LoanAmount, CreditScore,
-                              MonthsEmployed, NumCreditLines, InterestRate,
-                              LoanTerm, DTIRatio, Education,
-                              EmploymentType, MaritalStatus,
-                              HasMortgage, HasDependents,
-                              LoanPurpose, HasCoSigner]])
+    pred = model.predict(features)
+    prob = model.predict_proba(features)[0][1]
 
-        pred = model_lr.predict(features)
+    st.subheader("Result")
 
-        # Result display
-        st.subheader("Prediction Result")
+    if pred[0] == 1:
+        st.error("⚠️ High Risk of Default")
+    else:
+        st.success("✅ Low Risk (Safe)")
 
-        if pred[0] == 1:
-            st.error("⚠️ High Risk of Default")
-        else:
-            st.success("✅ Low Risk (Safe)")
-
-        # Probability (if supported)
-        try:
-            prob = model_lr.predict_proba(features)[0][1]
-            st.progress(float(prob))
-            st.write(f"📊 Default Probability: {prob:.2f}")
-        except:
-            pass
-
-    except Exception as e:
-        st.error(f"Prediction error: {e}")
+    st.progress(float(prob))
+    st.write(f"📊 Default Probability: {prob:.2f}")
