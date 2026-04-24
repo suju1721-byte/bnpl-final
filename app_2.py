@@ -73,12 +73,12 @@ model_choice = st.selectbox("Model", ["Logistic Regression", "Random Forest"])
 
 if st.button("Predict"):
 try:
-features = np.array([[Age, Income, LoanAmount, CreditScore,
-MonthsEmployed, NumCreditLines, InterestRate,
-LoanTerm, DTIRatio, Education,
-EmploymentType, MaritalStatus,
-HasMortgage, HasDependents,
-LoanPurpose, HasCoSigner]])
+    features = np.array([[Age, Income, LoanAmount, CreditScore,
+    MonthsEmployed, NumCreditLines, InterestRate,
+    LoanTerm, DTIRatio, Education,
+    EmploymentType, MaritalStatus,
+    HasMortgage, HasDependents,
+    LoanPurpose, HasCoSigner]])
 
 ```
     if model_choice == "Logistic Regression":
