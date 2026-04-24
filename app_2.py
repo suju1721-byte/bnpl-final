@@ -11,7 +11,7 @@ import streamlit as st
 # =========================
 
 def load_model(pkl_string):
-return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
+    return joblib.load(io.BytesIO(base64.b64decode(pkl_string)))
 
 # =========================
 
